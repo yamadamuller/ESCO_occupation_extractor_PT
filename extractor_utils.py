@@ -39,10 +39,14 @@ class ESCOextractor:
         else:
             self.hardware = "cpu" #run the transformer model in cpu instead of gpu
 
-        with warnings.catch_warnings(): #ignore warnings when loading the model
+        with warnings.catch_warnings():  # ignore warnings when loading the model
             warnings.simplefilter("ignore")
-            self.ext_model = sentence_transformers.SentenceTransformer("all-MiniLM-L6-v2",
-                                                                       device=self.hardware) #define the text transformer module and how to run
+            if os.path.exists(os.getenv("MODEL_PATH")):
+                self.ext_model = SentenceTransformer.load(os.getenv("MODEL_PATH"))  #load the saved model
+            else:
+                self.ext_model = sentence_transformers.SentenceTransformer("all-MiniLM-L6-v2",
+                                                                           device=self.hardware)  #define the text transformer module and how to run
+                self.ext_model.save_pretrained(os.getenv("MODEL_PATH"))  #save the model into memory
 
         #Data structures to store all the ESCO information
         self.codes = None #variable to store the skills/occupations for string comparison
@@ -164,7 +168,7 @@ class ESCOextractor:
 
         #Pre-process the input
         if len(text_input) == 0:
-            return '' #if the text_input is empty, return an empty string
+            return '','' #if the text_input is empty, return an empty string
         else:
             tokens = text_input
 
